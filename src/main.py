@@ -1,7 +1,11 @@
 import cv2
+import math
+import time
 from frame_analyzer import FrameAnalyzer
 
 STREAM_SRC = "https://www.bloomberg.com/media-manifest/streams/aus.m3u8" # sample stream
+BLUR_THRESHOLD = 1000
+FPS_RESET_INTERVAL = 1 # num of seconds before fps is calculated
 
 def main():
     cap = cv2.VideoCapture(STREAM_SRC)
@@ -9,8 +13,11 @@ def main():
         print(f"Cannot open video source: {STREAM_SRC}")
         return
 
+    start_time = time.time()
+    frame_count = 0
+
     fps = cap.get(cv2.CAP_PROP_FPS)
-    if fps <= 0 or fps != fps:
+    if fps <= 0 or math.isnan(fps):
         fps = 30
 
     frame_delay = 1000 / fps
@@ -22,12 +29,22 @@ def main():
             break
 
         frame = cv2.resize(frame, (640, 480))
+        _, blurry, variance = FrameAnalyzer.is_blurry(frame, BLUR_THRESHOLD)
 
-        analyzer = FrameAnalyzer(frame)
-        _, blurry, variance = analyzer.is_blurry()
-
-        cv2.putText(frame, f"FPS: {fps}, isBlurry: {blurry}, variance: {variance}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+        y0 = 30
+        line_height = 30
+        cv2.putText(frame, f"FPS: {fps:.2f}", (10, y0), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+        cv2.putText(frame, f"Blurry: {blurry}", (10, y0 + line_height), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+        cv2.putText(frame, f"Variance: {variance:.2f}", (10, y0 + 2 * line_height), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
         cv2.imshow("stream preview", frame)
+
+        frame_count += 1
+        elapsed_time = time.time() - start_time
+        if elapsed_time > FPS_RESET_INTERVAL:
+            fps = frame_count / elapsed_time
+            frame_count = 0
+            start_time = time.time()
+
         if cv2.waitKey(max(1, int(frame_delay))) & 0xFF == ord('q'):
             break
 
