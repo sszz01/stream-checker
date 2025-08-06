@@ -4,7 +4,7 @@ import time
 from frame_analyzer import FrameAnalyzer
 
 STREAM_SRC = "https://www.bloomberg.com/media-manifest/streams/aus.m3u8" # sample stream
-BLUR_THRESHOLD = 1000
+BLUR_THRESHOLD = 300
 FPS_RESET_INTERVAL = 1 # num of seconds before fps is calculated
 
 def main():
@@ -29,13 +29,13 @@ def main():
             break
 
         frame = cv2.resize(frame, (640, 480))
-        _, blurry, variance = FrameAnalyzer.is_blurry(frame, BLUR_THRESHOLD)
+        is_blurry = FrameAnalyzer.is_blurry(frame, BLUR_THRESHOLD, 75, (3,3))
 
         y0 = 30
         line_height = 30
         cv2.putText(frame, f"FPS: {fps:.2f}", (10, y0), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
-        cv2.putText(frame, f"Blurry: {blurry}", (10, y0 + line_height), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
-        cv2.putText(frame, f"Variance: {variance:.2f}", (10, y0 + 2 * line_height), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+        cv2.putText(frame, f"Blurry: {is_blurry}", (10, y0 + line_height), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+        # cv2.putText(frame, f"Variance: {variance:.2f}", (10, y0 + 2 * line_height), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
         cv2.imshow("stream preview", frame)
 
         frame_count += 1
