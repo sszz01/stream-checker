@@ -29,13 +29,17 @@ def main():
             break
 
         frame = cv2.resize(frame, (640, 480))
-        is_blurry = FrameAnalyzer.is_blurry(frame, BLUR_THRESHOLD, 75, (3,3))
+        is_blurry, blur_map = FrameAnalyzer.is_blurry(frame, BLUR_THRESHOLD, 75, (5,3))
 
         y0 = 30
         line_height = 30
         cv2.putText(frame, f"FPS: {fps:.2f}", (10, y0), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
         cv2.putText(frame, f"Blurry: {is_blurry}", (10, y0 + line_height), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
-        # cv2.putText(frame, f"Variance: {variance:.2f}", (10, y0 + 2 * line_height), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+        for rect, variance in blur_map:
+            x_start, y_start, x_end, y_end, color = rect
+            cv2.rectangle(frame, (x_start, y_start), (x_end, y_end), color, 2)
+            cv2.putText(frame, f"{variance:.2f}", (x_start, y_start + (y_end - y_start)), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+                        color, 2)
         cv2.imshow("stream preview", frame)
 
         frame_count += 1
