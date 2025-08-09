@@ -1,11 +1,17 @@
 import cv2
 import math
 import time
+import logging
 from frame_analyzer import FrameAnalyzer
+from errors import StreamError
 
 STREAM_SRC = "https://www.bloomberg.com/media-manifest/streams/aus.m3u8" # sample stream
 BLUR_THRESHOLD = 300
 FPS_RESET_INTERVAL = 1 # num of seconds before fps is calculated
+
+def setup_logging():
+    logging.basicConfig(filename="./logs/incidents.txt", filemode="a",
+                        format="[%(asctime)s] %(levelname)s - %(message)s", level=logging.INFO)
 
 def main():
     cap = cv2.VideoCapture(STREAM_SRC)
@@ -15,6 +21,8 @@ def main():
 
     start_time = time.time()
     frame_count = 0
+    setup_logging()
+    last_logtime = time.time()
 
     fps = cap.get(cv2.CAP_PROP_FPS)
     if fps <= 0 or math.isnan(fps):
@@ -30,6 +38,11 @@ def main():
 
         frame = cv2.resize(frame, (640, 480))
         is_blurry, blur_map = FrameAnalyzer.is_blurry(frame, BLUR_THRESHOLD, 75, (5,3))
+
+        current_logtime = time.time()
+        if is_blurry and (current_logtime - last_logtime) > 3:
+            logging.info(f"INCIDENT TYPE:{StreamError.BLUR.name} DETECTED")
+            last_logtime = current_logtime
 
         y0 = 30
         line_height = 30
