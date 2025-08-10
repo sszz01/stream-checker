@@ -40,7 +40,7 @@ def main():
         is_blurry, blur_map = FrameAnalyzer.is_blurry(frame, BLUR_THRESHOLD, 75, (5,3))
 
         current_logtime = time.time()
-        if is_blurry and (current_logtime - last_logtime) > 3:
+        if is_blurry and (current_logtime - last_logtime) > 5:
             logging.info(f"INCIDENT TYPE:{StreamError.BLUR.name} DETECTED")
             last_logtime = current_logtime
 
