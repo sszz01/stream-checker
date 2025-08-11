@@ -4,6 +4,7 @@ import time
 import logging
 from frame_analyzer import FrameAnalyzer
 from errors import StreamError
+from data import colors
 
 STREAM_SRC = "https://www.bloomberg.com/media-manifest/streams/aus.m3u8" # sample stream
 LAP_THRESHOLD = 300
@@ -52,8 +53,8 @@ def main():
         for rect, variance, fft_score in blur_map:
             x_start, y_start, x_end, y_end, color = rect
             cv2.rectangle(frame, (x_start, y_start), (x_end, y_end), color, 2)
-            cv2.putText(frame, f"V: {variance:.1f} F:{fft_score: .1f}", (x_start, y_start + (y_end - y_start)), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
-                        color, 2)
+            cv2.putText(frame, f"V: {int(variance)} F:{int(fft_score)}", (x_start, y_start + (y_end - y_start)), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+                        colors.COLOR_LIGHTBLUE, 2)
         cv2.imshow("stream preview", frame)
 
         frame_count += 1
