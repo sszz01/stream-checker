@@ -1,11 +1,25 @@
 import cv2
+import numpy as np
 
 class FrameAnalyzer:
     def __init__(self, frame):
         self.frame = frame
 
     @staticmethod
-    def is_blurry(frame, threshold, blur_percentage, grid_size):
+    def fft_sharpness(gray_cell, low_freq_size=10):
+        f = np.fft.fft2(gray_cell)
+        fshift = np.fft.fftshift(f)
+        mag_spectrum = np.abs(fshift)
+
+        h, w = mag_spectrum.shape
+        cX, cY = (int(w // 2), int(h // 2))
+        mag_spectrum[cX - low_freq_size: cX + low_freq_size, cY - low_freq_size: cY + low_freq_size] = 0
+
+        return np.mean(mag_spectrum)
+
+
+    @staticmethod
+    def is_blurry(frame, lap_threshold, fft_threshold, blur_percentage, grid_size):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         height, width = gray.shape
@@ -23,13 +37,13 @@ class FrameAnalyzer:
                 cell = gray[y_start: y_end, x_start : x_end] # slice the original frame into those cells
                 laplacian = cv2.Laplacian(cell, cv2.CV_64F)
                 variance = laplacian.var()
+                fft_score = FrameAnalyzer.fft_sharpness(cell)
 
-                is_blurry_cell = variance < threshold
                 color = (0, 255, 0) # color cell green if not blurry
-                if is_blurry_cell:
+                if (variance < lap_threshold) and (fft_score < fft_threshold): # mark blurry if both laplacian and fourier transform values are low
                     color = (0, 0, 255) # otherwise its red
                     num_blurry += 1
                 rect = (x_start, y_start, x_end, y_end, color)
-                blur_map.append((rect, variance))
+                blur_map.append((rect, variance, fft_score))
 
         return ((num_blurry / total_cells) * 100) > blur_percentage, blur_map

@@ -6,7 +6,8 @@ from frame_analyzer import FrameAnalyzer
 from errors import StreamError
 
 STREAM_SRC = "https://www.bloomberg.com/media-manifest/streams/aus.m3u8" # sample stream
-BLUR_THRESHOLD = 300
+LAP_THRESHOLD = 300
+FFT_THRESHOLD = 1000
 FPS_RESET_INTERVAL = 1 # num of seconds before fps is calculated
 
 def setup_logging():
@@ -37,21 +38,21 @@ def main():
             break
 
         frame = cv2.resize(frame, (640, 480))
-        is_blurry, blur_map = FrameAnalyzer.is_blurry(frame, BLUR_THRESHOLD, 75, (5,3))
+        is_blurry, blur_map = FrameAnalyzer.is_blurry(frame, LAP_THRESHOLD, FFT_THRESHOLD, 75,(5,3))
 
         current_logtime = time.time()
         if is_blurry and (current_logtime - last_logtime) > 5:
-            logging.info(f"INCIDENT TYPE:{StreamError.BLUR.name} DETECTED")
+            logging.info(f"INCIDENT TYPE: {StreamError.BLUR.name} DETECTED")
             last_logtime = current_logtime
 
         y0 = 30
         line_height = 30
         cv2.putText(frame, f"FPS: {fps:.2f}", (10, y0), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
         cv2.putText(frame, f"Blurry: {is_blurry}", (10, y0 + line_height), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
-        for rect, variance in blur_map:
+        for rect, variance, fft_score in blur_map:
             x_start, y_start, x_end, y_end, color = rect
             cv2.rectangle(frame, (x_start, y_start), (x_end, y_end), color, 2)
-            cv2.putText(frame, f"{variance:.2f}", (x_start, y_start + (y_end - y_start)), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+            cv2.putText(frame, f"V: {variance:.1f} F:{fft_score: .1f}", (x_start, y_start + (y_end - y_start)), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
                         color, 2)
         cv2.imshow("stream preview", frame)
 
