@@ -13,7 +13,7 @@ class FrameAnalyzer:
 
         h, w = mag_spectrum.shape
         cX, cY = (int(w // 2), int(h // 2))
-        mag_spectrum[cX - low_freq_size: cX + low_freq_size, cY - low_freq_size: cY + low_freq_size] = 0
+        mag_spectrum[cY - low_freq_size: cY + low_freq_size, cX - low_freq_size: cX + low_freq_size] = 0
 
         return np.mean(mag_spectrum)
 
