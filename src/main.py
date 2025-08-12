@@ -8,7 +8,8 @@ from data import colors
 
 STREAM_SRC = "https://www.bloomberg.com/media-manifest/streams/aus.m3u8" # sample stream
 LAP_THRESHOLD = 300
-FFT_THRESHOLD = 1000
+FFT_THRESHOLD = 300
+TEN_THRESHOLD = 300
 FPS_RESET_INTERVAL = 1 # num of seconds before fps is calculated
 
 def setup_logging():
@@ -39,7 +40,7 @@ def main():
             break
 
         frame = cv2.resize(frame, (640, 480))
-        is_blurry, blur_map = FrameAnalyzer.is_blurry(frame, LAP_THRESHOLD, FFT_THRESHOLD, 75,(5,3))
+        is_blurry, blur_map = FrameAnalyzer.is_blurry(frame, LAP_THRESHOLD, FFT_THRESHOLD, TEN_THRESHOLD, 75,(5,3))
 
         current_logtime = time.time()
         if is_blurry and (current_logtime - last_logtime) > 5:

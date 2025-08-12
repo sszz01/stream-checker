@@ -17,9 +17,15 @@ class FrameAnalyzer:
 
         return np.mean(mag_spectrum)
 
+    @staticmethod
+    def tenengrad(gray_cell):
+        sx = cv2.Sobel(gray_cell, cv2.CV_64F, 1, 0, ksize=5)
+        sy = cv2.Sobel(gray_cell, cv2.CV_64F, 0, 1, ksize=5)
+        return cv2.magnitude(sx, sy).mean()
+
 
     @staticmethod
-    def is_blurry(frame, lap_threshold, fft_threshold, blur_percentage, grid_size):
+    def is_blurry(frame, lap_threshold, fft_threshold, ten_threshold, blur_percentage, grid_size):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         height, width = gray.shape
@@ -38,9 +44,10 @@ class FrameAnalyzer:
                 laplacian = cv2.Laplacian(cell, cv2.CV_64F)
                 variance = laplacian.var()
                 fft_score = FrameAnalyzer.fft_sharpness(cell)
+                ten_score = FrameAnalyzer.tenengrad(cell)
 
                 color = (0, 255, 0) # color cell green if not blurry
-                if (variance < lap_threshold) and (fft_score < fft_threshold): # mark blurry if both laplacian and fourier transform values are low
+                if (variance < lap_threshold) and (fft_score < fft_threshold) and (ten_score < ten_threshold): # mark blurry if both laplacian and fourier transform values are low
                     color = (0, 0, 255) # otherwise its red
                     num_blurry += 1
                 rect = (x_start, y_start, x_end, y_end, color)
