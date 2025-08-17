@@ -6,21 +6,16 @@ import datetime
 from frame_analyzer import FrameAnalyzer
 from errors import StreamError
 from data import colors
-
-STREAM_SRC1 = "https://www.bloomberg.com/media-manifest/streams/aus.m3u8"  # sample stream
-LAP_THRESHOLD = 300
-FFT_THRESHOLD = 500
-TEN_THRESHOLD = 800
-FPS_RESET_INTERVAL = 1 # num of seconds before fps is calculated
+from config import *
 
 def setup_logging():
     logging.basicConfig(filename="./logs/incidents.txt", filemode="a",
                         format="[%(asctime)s] %(levelname)s - %(message)s", level=logging.INFO)
 
 def main():
-    cap = cv2.VideoCapture(STREAM_SRC1)
+    cap = cv2.VideoCapture(STREAM_SRC)
     if not cap.isOpened():
-        print(f"Cannot open video source: {STREAM_SRC1}")
+        print(f"Cannot open video source: {STREAM_SRC}")
         return
 
     start_time = time.time()
@@ -36,7 +31,7 @@ def main():
     frame_dim = (640, 480)
 
     fourcc = cv2.VideoWriter.fourcc(*'mp4v')
-    out = cv2.VideoWriter(f'testing/vids/[{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}].mp4', fourcc, fps, frame_dim)
+    out = cv2.VideoWriter(f'testing/vids/[{datetime.datetime.now().strftime("(%Y-%m-%d) %H:%M:%S")}].mp4', fourcc, fps, frame_dim)
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -46,7 +41,7 @@ def main():
 
         frame = cv2.resize(frame, frame_dim)
         out.write(frame)
-        is_blurry, blur_map = FrameAnalyzer.is_blurry(frame, LAP_THRESHOLD, FFT_THRESHOLD, TEN_THRESHOLD, 75,(5,3))
+        is_blurry, blur_map = FrameAnalyzer.is_blurry(frame, BLUR_THRESHOLDS["lap"], BLUR_THRESHOLDS["fft"], BLUR_THRESHOLDS["ten"], 75,(5,3))
 
         current_logtime = time.time()
         if is_blurry and (current_logtime - last_logtime) > 5:
