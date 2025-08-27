@@ -2,7 +2,7 @@ import cv2
 import math
 import time
 import logging
-from frame_analyzer import FrameAnalyzer
+from frame_analyzer import is_blurry
 from errors import StreamError
 from data import colors
 from config import *
@@ -38,17 +38,17 @@ def main():
         frame = cv2.resize(frame, frame_dim) # original frame (CDN inpot)
         copy_frame = frame.copy() # copy to not mess up the original
         blurred_frame = cv2.GaussianBlur(copy_frame, (5, 5), 0.75) # simulating degraded CDN output
-        is_blurry, blur_map = FrameAnalyzer.is_blurry(frame, blurred_frame, 35, 25,(5,5))
+        is_blurred, blur_map = is_blurry(frame, blurred_frame, 25, 25,(5,5))
 
         current_logtime = time.time()
-        if is_blurry and (current_logtime - last_logtime) > 5:
+        if is_blurred and (current_logtime - last_logtime) > 5:
             logging.info(f"INCIDENT TYPE: {StreamError.BLUR.name} DETECTED")
             last_logtime = current_logtime
 
         y0 = 30
         line_height = 30
         cv2.putText(blurred_frame, f"FPS: {fps:.2f}", (10, y0), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
-        cv2.putText(blurred_frame, f"Blurry: {is_blurry}", (10, y0 + line_height), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+        cv2.putText(blurred_frame, f"Blurry: {is_blurred}", (10, y0 + line_height), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
         for rect, variance, fft_score, ten_score, relative_blur in blur_map:
             x_start, y_start, x_end, y_end, color = rect
             cv2.rectangle(blurred_frame, (x_start, y_start), (x_end, y_end), color, 2)
