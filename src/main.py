@@ -38,7 +38,7 @@ def main():
         frame = cv2.resize(frame, frame_dim) # original frame (CDN inpot)
         copy_frame = frame.copy() # copy to not mess up the original
         blurred_frame = cv2.GaussianBlur(copy_frame, (5, 5), 0.75) # simulating degraded CDN output
-        is_blurry, blur_map = FrameAnalyzer.is_blurry(frame, blurred_frame, 35, 75,(5,5))
+        is_blurry, blur_map = FrameAnalyzer.is_blurry(frame, blurred_frame, 35, 25,(5,5))
 
         current_logtime = time.time()
         if is_blurry and (current_logtime - last_logtime) > 5:
@@ -54,7 +54,7 @@ def main():
             cv2.rectangle(blurred_frame, (x_start, y_start), (x_end, y_end), color, 2)
             # cv2.putText(frame, f"V: {int(variance)} F:{int(fft_score)} T:{int(ten_score)}", (x_start, y_start + (y_end - y_start)), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
             #             colors.COLOR_LIGHTBLUE, 2)
-            cv2.putText(blurred_frame, f"Rel Blur: {relative_blur : .2f}",
+            cv2.putText(blurred_frame, f"RB: {relative_blur : .2f}",
                         (x_start, y_start + (y_end - y_start)), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
                         colors.COLOR_LIGHTBLUE, 2)
         cv2.imshow("stream preview", frame)
